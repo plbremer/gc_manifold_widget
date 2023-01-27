@@ -1,0 +1,10 @@
+version: "3.5.3"
+
+services:
+  gcmswidget:
+    image: rictuar/gcms-widget
+    container_name: gcms-widget
+    ports:
+      - 80:8050
+    restart: on-failure      
+    

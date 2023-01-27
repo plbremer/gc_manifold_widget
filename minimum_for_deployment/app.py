@@ -1,5 +1,4 @@
-import serverless_wsgi
-
+from json.tool import main
 import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
@@ -25,7 +24,7 @@ local_stylesheet = {
     "rel": "stylesheet"
 }
 
-dataset=pd.read_pickle('../intermediates/all_attributes_for_widget.bin')
+dataset=pd.read_pickle('all_attributes_for_widget_minimal.bin')
 #dataset=pd.read_pickle('../intermediates/tiny_test.bin')
 
 
@@ -125,7 +124,7 @@ app.layout=html.Div(
                                                 # {'label': '0.01', 'value': '0.01'},
                                                 # {'label': '0.001', 'value': '0.001'},
                                             ],         
-                                            #value='binvestigate,species,organ,disease',
+                                            value=True,
                                             className="btn-group",
                                             inputClassName="btn-check",
                                             labelClassName="btn btn-outline-primary",
@@ -239,6 +238,32 @@ def generate_manifold_projection(button_query_n_clicks,radioitems_coordinates_va
         opacity=radioitems_opacity_value,
         color=umap_color
     )
+                                                # {'label': 'molecular_weight', 'value': 'molecular_weight'},
+                                                # {'label': 'kovats_ri', 'value': 'Kovats-RI-est'},
+                                                # {'label': 'spectrum', 'value': 'spectrum_cluster_label'},
+                                                # {'label': 'structure', 'value': 'structure_cluster_label'},
+
+    if umap_color=='molecular_weight':
+        manifold_projection_figure.update_layout(coloraxis=dict(
+            cmin=49,
+            cmax=700
+        ))
+    elif umap_color=='Kovats-RI-est':
+        manifold_projection_figure.update_layout(coloraxis=dict(
+            cmin=0,
+            cmax=5000
+        ))
+
+    # fig.update_layout(coloraxis_colorbar=dict(
+    #     title="Number of Bills per Cell",
+    #     thicknessmode="pixels", thickness=50,
+    #     lenmode="pixels", len=200,
+    #     yanchor="top", y=1,
+    #     ticks="outside", ticksuffix=" bills",
+    #     dtick=5
+    # ))
+
+
 
     div_manifold_children=[
         dbc.Row(
@@ -247,7 +272,7 @@ def generate_manifold_projection(button_query_n_clicks,radioitems_coordinates_va
                 dbc.Col(
                     children=[
                         html.H2("Manifold Projection", className='text-center'),
-                        html.H4("Click a point to see nearby structures", className='text-center'),
+                        html.H4("Click a point to see a random selection of nearby points", className='text-center'),
                         dcc.Graph(
                             id='manifold_figure',
                             figure= manifold_projection_figure,
@@ -282,7 +307,7 @@ def generate_manifold_projection(button_query_n_clicks,radioitems_coordinates_va
     prevent_initial_call=True
 )
 def probe_point(manifold_figure_clickData,radioitems_coordinates_value):
-    #print(manifold_figure_clickData)
+    print(manifold_figure_clickData)
 
     point_x=manifold_figure_clickData['points'][0]['x']
     point_y=manifold_figure_clickData['points'][0]['y']
@@ -315,7 +340,7 @@ def probe_point(manifold_figure_clickData,radioitems_coordinates_value):
 
     temp_image=draw_molecules_and_spectra(ten_sample_rows)
 
-    #print(nearby_datapoints_panda)
+    print(nearby_datapoints_panda)
 
     #print(nearby_datapoints_panda.inchikey_first_block.value_counts())
 
@@ -340,7 +365,7 @@ def draw_molecules_and_spectra(sample_rows):
     for index,series in sample_rows.iterrows():
         #image_list.append(Draw.MolToImage(series['computed_rdkit_mol']))
         temp_mol_image=Draw.MolToImage(series['computed_rdkit_mol'])
-        #print(temp_mol_image)
+        print(temp_mol_image)
         #temp_mol_image_numpy=mpimg.imread(temp_mol_image)
         ax[index,0].imshow(temp_mol_image)
 
@@ -368,9 +393,6 @@ def draw_molecules_and_spectra(sample_rows):
 
 
 
-# if __name__ == "__main__":
-#     #app.run(debug=False, host='0.0.0.0')
-#     app.run(debug=True)
-
-def handler(event, context):
-    return serverless_wsgi.handle_request(app, event, context)
+if __name__ == "__main__":
+    app.run(debug=False, host='0.0.0.0')
+    #app.run(debug=True)
