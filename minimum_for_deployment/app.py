@@ -8,6 +8,7 @@ matplotlib.use('Agg')
 import io
 import base64
 import matplotlib.image as mpimg
+from dash.exceptions import PreventUpdate
 
 from rdkit.Chem import Draw
 
@@ -47,7 +48,7 @@ app.layout=html.Div(
                                                 {'label': 'spectrum', 'value': 'spectrum'},
                                                 {'label': 'structure', 'value': 'structure'},
                                             ],  
-                                            value='spectrum',
+                                            value='structure',
                                             #value='binvestigate,species,organ,disease',
                                             className="btn-group",
                                             inputClassName="btn-check",
@@ -74,7 +75,7 @@ app.layout=html.Div(
                                                 {'label': 'none', 'value': None}
                                             ],         
                                             #value='binvestigate,species,organ,disease',
-                                            value='spectrum_cluster_label',
+                                            value='structure_cluster_label',
                                             className="btn-group",
                                             inputClassName="btn-check",
                                             labelClassName="btn btn-outline-primary",
@@ -98,7 +99,7 @@ app.layout=html.Div(
                                                 {'label': '0.01', 'value': 0.01},
                                                 {'label': '0.001', 'value': 0.001},
                                             ],       
-                                            value=1,  
+                                            value=0.1,  
                                             #value='binvestigate,species,organ,disease',
                                             className="btn-group",
                                             inputClassName="btn-check",
@@ -124,7 +125,7 @@ app.layout=html.Div(
                                                 # {'label': '0.01', 'value': '0.01'},
                                                 # {'label': '0.001', 'value': '0.001'},
                                             ],         
-                                            value=True,
+                                            value=False,
                                             className="btn-group",
                                             inputClassName="btn-check",
                                             labelClassName="btn btn-outline-primary",
@@ -216,12 +217,14 @@ def generate_manifold_projection(button_query_n_clicks,radioitems_coordinates_va
     #sort out color
     umap_color=radioitems_colors_value
 
-
+    #print(umap_color)
+    #print(radioitems_show_unlabeled_value)
     #sort out -1 cluster values
     if umap_color=='structure_cluster_label' or umap_color=='spectrum_cluster_label':
         if radioitems_show_unlabeled_value==False:
             temp_dataset=temp_dataset.loc[
-                temp_dataset[umap_color]!='-1'
+                temp_dataset[umap_color]!=-1,
+                :
             ]
 
 
@@ -307,7 +310,11 @@ def generate_manifold_projection(button_query_n_clicks,radioitems_coordinates_va
     prevent_initial_call=True
 )
 def probe_point(manifold_figure_clickData,radioitems_coordinates_value):
-    print(manifold_figure_clickData)
+    #print('----------------------------------------------------------------------------')
+    #print(manifold_figure_clickData)
+
+    if manifold_figure_clickData==None:
+        raise PreventUpdate
 
     point_x=manifold_figure_clickData['points'][0]['x']
     point_y=manifold_figure_clickData['points'][0]['y']
